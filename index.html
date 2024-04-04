@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Patata Airlines</title>
+    <style>
+        body {
+            background-color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .container img {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #333333;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 18px;
+            font-weight: bold;
+            display: block;
+            /*margin-left: 150px;*/
+            margin: 0 auto;
+        }
+
+        label {
+            display: block;
+            font-size: 16px;
+            color: #333333;
+            margin-bottom: 5px;
+            text-align: left;
+        }
+
+        select, input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        button[type="submit"] {
+            background-color: #c7d413;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #b39202;
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-top: -10px;
+            margin-bottom: 10px;
+        }
+
+        .success {
+            color: green;
+            font-size: 16px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .horizontal-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .column {
+            flex: 1;
+            margin: 0 10px;
+            text-align: left;
+        }
+
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <img src="https://i.imgur.com/L89smbr.png" alt="Patata Airlines Logo">
+        <h1>Compra de Vuelo - Patata Airlines</h1>
+
+        <form id="flightForm">
+            <div class="horizontal-container">
+                <div class="column">
+                    <label for="nombre">Nombre de Usuario:</label>
+                    <input type="text" id="nombre" name="nombre" required>
+                </div>
+                <div class="column">
+                    <label for="cedula">Cedula:</label>
+                    <input type="number" id="cedula" name="cedula" required>
+                </div>
+                <div class="column">
+                    <label for="salida">Salida:</label>
+                    <select id="salida" name="salida" onchange="calculatePrice()" required>
+                        <option value="Aeropuerto Internacional Patata City">Aeropuerto Internacional Patata City</option>
+                        <option value="Aeropuerto Bartolome Island">Aeropuerto Bartolome Island</option>
+                        <option value="Aeropuerto La Fernandina">Aeropuerto La Fernandina</option>
+                        <option value="Aeropuerto Ice Beaches">Aeropuerto Ice Beaches</option>
+                    </select>
+                </div>
+                <div class="column">
+                    <label for="llegada">Llegada:</label>
+                    <select id="llegada" name="llegada" onchange="calculatePrice()" required>
+                        <option value="Aeropuerto Internacional Patata City">Aeropuerto Internacional Patata City</option>
+                        <option value="Aeropuerto Bartolome Island">Aeropuerto Bartolome Island</option>
+                        <option value="Aeropuerto La Fernandina">Aeropuerto La Fernandina</option>
+                        <option value="Aeropuerto Ice Beaches">Aeropuerto Ice Beaches</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="horizontal-container">
+                <div class="column">
+                    <label for="clase">Clase de Vuelo:</label>
+                    <select id="clase" name="clase" onchange="calculatePrice()" required>
+                        <option value="Economica">Economica</option>
+                        <option value="Primera Clase">Primera Clase</option>
+                    </select>
+                </div>
+                <div class="column">
+                    <label for="idaVuelta">¿Vuelo de Ida y Vuelta?</label>
+                    <input type="checkbox" id="idaVuelta" name="idaVuelta">
+                </div>
+                <div class="column">
+                    <label for="fecha">Fecha y Hora</label>
+                    <input type="datetime-local" id="fecha" min="" name="fecha" required>
+                </div>
+              
+                
+            </div>
+
+            <div class="horizontal-container">
+                <p>Por favor enviar UNA persona a la vez</p>
+            </div>
+
+            <label for="precioTotal">Precio Total:</label>
+            <input type="text" id="precioTotal" name="precioTotal" disabled>
+
+            <button type="submit" id="submitButton">Comprar Vuelo</button>
+            <div class="loading">
+                <img src="https://i.gifer.com/origin/34/34338d26023e5515f6cc8969aa027bca_w200.gif" alt="Loading" width="30">
+            </div>
+        </form>
+
+        <div id="errorContainer"></div>
+        <div id="successContainer"></div>
+    </div>
+
+    <script>
+        function calculatePrice() {
+        var clase = document.getElementById("clase").value;
+        var personas = 1
+        var precioTotal = document.getElementById("precioTotal");
+        var salida = document.getElementById("salida").value;
+        var llegada = document.getElementById("llegada").value;
+
+        console.log(`LL: ${llegada} + SL: ${salida}`);
+/*
+      Aeropuerto Internacional Patata City
+                     Aeropuerto Bartolome Island
+                       Aeropuerto La Fernandina
+                  Aeropuerto Ice Beaches
+        */
+
+        var precio = 0;
+
+        
+
+        if (salida === "Aeropuerto Internacional Patata City" && llegada === "Aeropuerto Bartolome Island") {
+            if (clase === "Economica") {
+                precio = 20.67;
+            } else if (clase === "Primera Clase") {
+                precio = 80.37;
+            }
+        } else if (salida === "Aeropuerto Bartolome Island" && llegada === "Aeropuerto Internacional Patata City") {
+            if (clase === "Economica") {
+                precio = 30.23;
+            } else if (clase === "Primera Clase") {
+                precio = 90.46;
+            }
+
+            //PAT & BAR
+        } else if (salida === "Aeropuerto Internacional Patata City" && llegada === "Aeropuerto La Fernandina") {
+            if (clase === "Economica") {
+                precio = 35.92;
+            } else if (clase === "Primera Clase") {
+                precio = 95.56;
+            }
+        } else if (salida === "Aeropuerto Bartolome Island" && llegada === "Aeropuerto La Fernandina") {
+            if (clase === "Economica") {
+                precio = 41.72;
+            } else if (clase === "Primera Clase") {
+                precio = 102.46;
+            }
+        } else if (salida === "Aeropuerto La Fernandina" && llegada === "Aeropuerto Bartolome Island") {
+            if (clase === "Economica") {
+                precio = 41.72;
+            } else if (clase === "Primera Clase") {
+                precio = 102.46;
+            }
+        } else if (salida === "Aeropuerto La Fernandina" && llegada === "Aeropuerto Internacional Patata City") {
+            if (clase === "Economica") {
+                precio = 35.92;
+            } else if (clase === "Primera Clase") {
+                precio = 95.56;
+            }
+            //PAT BAR & ICE
+        } else if (salida === "Aeropuerto Internacional Patata City" && llegada === "Aeropuerto Ice Beaches") {
+            if (clase === "Economica") {
+                precio = 60.34;
+            } else if (clase === "Primera Clase") {
+                precio = 122.77;
+            }
+        } else if (salida === "Aeropuerto Bartolome Island" && llegada === "Aeropuerto Ice Beaches") {
+            if (clase === "Economica") {
+                precio = 41.72;
+            } else if (clase === "Primera Clase") {
+                precio = 102.46;
+            }
+        } else if (salida === "Aeropuerto Ice Beaches" && llegada === "Aeropuerto Bartolome Island") {
+            if (clase === "Economica") {
+                precio = 41.72;
+            } else if (clase === "Primera Clase") {
+                precio = 102.46;
+            }
+        } else if (salida === "Aeropuerto Ice Beaches" && llegada === "Aeropuerto Internacional Patata City") {
+            if (clase === "Economica") {
+                precio = 60.34;
+            } else if (clase === "Primera Clase") {
+                precio = 122.77;
+            }
+        } else if (salida === "Aeropuerto La Fernandina" && llegada === "Aeropuerto Ice Beaches") {
+            if (clase === "Economica") {
+                precio = 76.89;
+            } else if (clase === "Primera Clase") {
+                precio = 170.84;
+            }
+        } else if (salida === "Aeropuerto Ice Beaches" && llegada === "Aeropuerto La Fernandina") {
+            if (clase === "Economica") {
+                precio = 76.89;
+            } else if (clase === "Primera Clase") {
+                precio = 170.34;
+            }
+        }
+
+
+        
+
+        precioTotal.value = "$" + precio;
+    }
+// Obtener la fecha y hora actual
+var now = new Date();
+
+// Agregar 5 minutos a la hora actual
+now.setMinutes(now.getMinutes() + 5);
+
+// Obtener la fecha y hora actual en formato local
+var year = now.getFullYear();
+var month = (now.getMonth() + 1).toString().padStart(2, "0");
+var day = now.getDate().toString().padStart(2, "0");
+var hours = now.getHours().toString().padStart(2, "0");
+var minutes = now.getMinutes().toString().padStart(2, "0");
+
+// Crear el valor mínimo para el elemento datetime-local
+var minDate = year + "-" + month + "-" + day + "T" + hours + ":" + minutes;
+
+// Establecer el valor mínimo para el elemento datetime-local
+document.getElementById("fecha").min = minDate;
+
+
+        
+        
+        function sendData() {
+            var nombre = document.getElementById("nombre").value;
+            var cedula = document.getElementById("cedula").value;
+            
+            var salida = document.getElementById("salida").value;
+            var llegada = document.getElementById("llegada").value;
+            var clase = document.getElementById("clase").value;
+            var idaVuelta = document.getElementById("idaVuelta").checked;
+            var personas = 1;
+            var status = "Waiting for payment..."
+            
+
+
+
+var fechaSeleccionada = document.getElementById("fecha").value;
+var fechaHora = new Date(fechaSeleccionada);
+
+var dia = fechaHora.getDate();
+var mes = fechaHora.getMonth() + 1;
+var anio = fechaHora.getFullYear();
+
+var horas = fechaHora.getHours();
+var minutos = fechaHora.getMinutes();
+
+// Añadir ceros a la izquierda si es necesario para mantener el formato (por ejemplo, 01 en lugar de 1)
+dia = (dia < 10 ? '0' : '') + dia;
+mes = (mes < 10 ? '0' : '') + mes;
+horas = (horas < 10 ? '0' : '') + horas;
+minutos = (minutos < 10 ? '0' : '') + minutos;
+
+var fecha = dia + '/' + mes + '/' + anio + ' | ' + horas + ':' + minutos;
+
+            
+            document.getElementById("errorContainer").innerHTML = "";
+            document.getElementById("successContainer").innerHTML = "";
+            document.getElementsByClassName("loading")[0].style.display = "none";
+            
+            if (salida === llegada) {
+                showError("La salida y la llegada no pueden ser iguales.");
+            } else if (personas > 3) {
+                showError("Solo se permiten hasta 3 personas por vuelo.");
+            } else {
+                var url = "https://script.google.com/macros/s/AKfycbzvxQOA2T3flYxmrNdIWGoDsaRvdROlFo0tlrmBX6k7MMeTnDN20imKv8fP2LuLNzet2A/exec";
+                var params = "nombre=" + encodeURIComponent(nombre) + "&salida=" + encodeURIComponent(salida) + "&llegada=" + encodeURIComponent(llegada) + "&clase=" + encodeURIComponent(clase) + "&idaVuelta=" + idaVuelta + "&personas=" + personas + "&cedula=" + encodeURIComponent(cedula) + "&fecha=" + encodeURIComponent(fecha);
+                
+                document.getElementsByClassName("loading")[0].style.display = "block";
+                disableForm();
+                
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    data: params,
+                    success: function(response) {
+                        document.getElementsByClassName("loading")[0].style.display = "none";
+                        enableForm();
+                        showSuccess("Felicidades! ¡Tu reserva de vuelo con Patata Airlines se ha completado con éxito!\n\n" +
+            "Agradecemos tu confianza en nuestros servicios y esperamos que disfrutes de un viaje increíble.\n\n" +
+            "¡Que tengas un vuelo seguro y agradable con Patata Airlines!");
+                    },
+                    error: function(xhr, status, error) {
+                        document.getElementsByClassName("loading")[0].style.display = "none";
+                        enableForm();
+                        showError("Ha ocurrido un error al procesar tu solicitud. Por favor, inténtalo nuevamente más tarde.");
+                    }
+                });
+            }
+        }
+
+        function showError(message) {
+            var errorContainer = document.getElementById("errorContainer");
+            errorContainer.innerHTML = "<div class='error'>" + message + "</div>";
+        }
+        
+        function showSuccess(message) {
+            var successContainer = document.getElementById("successContainer");
+            successContainer.innerHTML = "<div class='success'>" + message + "</div>";
+        }
+
+        function disableForm() {
+            document.getElementById("submitButton").disabled = true;
+            document.getElementById("nombre").disabled = true;
+            document.getElementById("cedula").disabled = true;
+            document.getElementById("fecha").disabled = true;
+            document.getElementById("salida").disabled = true;
+            document.getElementById("llegada").disabled = true;
+            document.getElementById("clase").disabled = true;
+            document.getElementById("idaVuelta").disabled = true;
+        }
+        
+        function enableForm() {
+            document.getElementById("submitButton").disabled = false;
+            document.getElementById("nombre").disabled = false;
+            document.getElementById("cedula").disabled = false;
+            document.getElementById("fecha").disabled = false;
+            document.getElementById("salida").disabled = false;
+            document.getElementById("llegada").disabled = false;
+            document.getElementById("clase").disabled = false;
+            document.getElementById("idaVuelta").disabled = false;
+        }
+
+        document.getElementById("flightForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            sendData();
+        });
+
+        // Agrega eventos onchange para los campos relevantes
+        document.getElementById("clase").addEventListener("change", calculatePrice);
+    </script>
+</body>
+</html>
